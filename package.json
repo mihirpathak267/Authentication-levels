@@ -1,0 +1,25 @@
+{
+  "name": "authentication-levels",
+  "version": "1.0.0",
+  "description": "App made to learn different levels of authentication for security.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mihirpathak267/Authentication-levels.git"
+  },
+  "author": "Mihir Pathak",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mihirpathak267/Authentication-levels/issues"
+  },
+  "homepage": "https://github.com/mihirpathak267/Authentication-levels#readme",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "ejs": "^3.1.8",
+    "express": "^4.18.2",
+    "mongoose": "^7.0.0"
+  }
+}
