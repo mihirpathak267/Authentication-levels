@@ -1,7 +1,9 @@
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
+var encrypt = require('mongoose-encryption');
 
 const app = express();
 
@@ -21,7 +23,12 @@ const userSchema = new mongoose.Schema({
     password: String
 });
 
+
+userSchema.plugin(encrypt, {secret: process.env.SECRETSTRING, encryptedFields: ["password"]});
+
 const User = new mongoose.model("User", userSchema);
+
+
 
 // Home route
 app.get("/", function(req, res){
@@ -51,7 +58,10 @@ app.get("/register", function(req, res){
 });
 
 app.post("/register", function(req, res){
-
+    const newUser = new User({
+        email: req.body.username,
+        password: req.body.password
+    });
     newUser.save()
     .then((user) => {
         if (user){
