@@ -8,6 +8,8 @@ const session = require("express-session");
 const passport = require("passport");   
 const { use } = require('passport');
 const passportLocalMongoose = require('passport-local-mongoose');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const findOrCreate = require('mongoose-findorcreate')
 
 
 const app = express();
@@ -45,27 +47,57 @@ mongoose.connect('mongodb://127.0.0.1:27017/userDB', {
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 const userSchema = new mongoose.Schema({
+    username: { type: String, unique: true },
     email: String,
-    password: String
+    password: String,
+    googleId: String
 });
 // Add plugin to userSchema to use it for sessions
 userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(findOrCreate);
 
 const User = new mongoose.model("User", userSchema);
 // After creating model we use passport.use Strategy for local Strategy
 passport.use(User.createStrategy());
 // passport.use(new LocalStrategy(User.authenticate()));
 
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.serializeUser(function(user, done){
+    done(null, user.id);
+  });
 
+passport.deserializeUser(function(id, done){
+  User.findById(id, function(err, user){
+  done(err, user);
+  });
+  });
+
+  passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://localhost:3000/auth/google/secrets"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    console.log(profile);
+    User.findOrCreate({ googleId: profile.id, username: profile.id, email: profile._json.email }, function (err, user) {
+      return cb(err, user);
+    });
+  }
+));
 
 
 // Home route
 app.get("/", function(req, res){
     res.render("home");
 });
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+app.get('/auth/google/secrets', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect secrets.
+    res.redirect('/secrets');
+  });  
 app.get("/secrets", function(req, res){
     if(req.isAuthenticated()){
         res.render("secrets");
